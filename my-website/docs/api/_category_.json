@@ -1,0 +1,8 @@
+{
+  "label": "API",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "REST API платформы Карьерный навигатор. Интерактивная документация и справочник кодов ошибок."
+  }
+}
