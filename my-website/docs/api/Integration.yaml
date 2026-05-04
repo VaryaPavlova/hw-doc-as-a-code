@@ -1,0 +1,405 @@
+openapi: 3.0.2
+info:
+  title: Карьерная карта API
+  description: API для выбора специализации, управления учебными материалами, отслеживания прогресса и оценки уроков.
+  version: 1.0.0
+servers:
+  - url: https://api.CareerMap.com/api/v1
+
+paths:
+  /specializations:
+    get:
+      summary: Получить список всех специализаций
+      description: Возвращает список всех доступных специализаций для выбора карьерного пути (Wireframe 1)
+      operationId: getSpecializations
+      tags:
+        - Специализации
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Specialization'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+  /specializations/{specialization_id}/info:
+    get:
+      summary: Получить информацию о специализации
+      description: Возвращает полную информацию о конкретной специализации (Wireframe 3)
+      operationId: getSpecializationInfo
+      tags:
+        - Специализации
+      parameters:
+        - $ref: '#/components/parameters/SpecializationId'
+      responses:
+        '200':
+          description: Расширенная информация о специализации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecializationInfo'
+        '404':
+          description: Специализация не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  
+  /specializations/{specialization_id}/materials:
+    get:
+      summary: Получить все материалы (навыки/уроки) для специализации
+      description: Возвращает список материалов, принадлежащих указанной специализации (Wireframe 2)
+      operationId: getMaterials
+      tags:
+        - Материалы
+      parameters:
+        - $ref: '#/components/parameters/SpecializationId'
+      responses:
+        '200':
+          description: Список материалов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaterialSummary'
+        '404':
+          description: Специализация не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /specializations/{specialization_id}/materials/{material_id}:
+    get:
+      summary: Получить детальную информацию о конкретном материале
+      description: Возвращает полные данные материала, включая контент и прогресс пользователя (Wireframe 4)
+      operationId: getMaterial
+      tags:
+        - Материалы
+      parameters:
+        - $ref: '#/components/parameters/SpecializationId'
+        - $ref: '#/components/parameters/MaterialId'
+      responses:
+        '200':
+          description: Детали материала
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialDetail'
+        '404':
+          description: Материал или специализация не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /materials/{material_id}/rate:
+    post:
+      summary: Оценить материал (урок)
+      description: Сохраняет оценку пользователя за материал (Wireframe 5)
+      operationId: rateMaterial
+      tags:
+        - Прогресс
+      parameters:
+        - $ref: '#/components/parameters/MaterialId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateRequest'
+      responses:
+        '200':
+          description: Оценка успешно сохранена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateResponse'
+        '404':
+          description: Материал не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /materials/{material_id}/complete:
+    post:
+      summary: Отметить материал как пройденный
+      description: Переключает статус завершения материала (Wireframe 6)
+      operationId: completeMaterial
+      tags:
+        - Прогресс
+      parameters:
+        - $ref: '#/components/parameters/MaterialId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteRequest'
+      responses:
+        '200':
+          description: Статус завершения обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteResponse'
+        '404':
+          description: Материал не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+components:
+  parameters:
+
+    SpecializationId:
+      name: specialization_id
+      in: path
+      required: true
+      description: Уникальный идентификатор специализации
+      schema:
+        type: integer
+        example: 1
+        
+    MaterialId:
+      name: material_id
+      in: path
+      required: true
+      description: Уникальный идентификатор материала (урока)
+      schema:
+        type: integer
+        example: 42
+
+  schemas:
+    Specialization:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор специализации
+          example: 1
+        name:
+          type: string
+          description: Отображаемое название специализации
+          example: "SMM"
+        short_description:
+          type: string
+          description: Краткое описание для карточки
+          example: "Ведение и продвижение брендов в социальных сетях"
+        icon_url:
+          type: string
+          description: URL иконки
+          example: "https://cdn.example.com/icons/smm.png"
+        category:
+          type: string
+          enum: [marketing, analytics, management, design]
+          description: Широкая категория специализации
+          example: "marketing"
+
+    SpecializationInfo:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - responsibilities
+      properties:
+        id:
+          type: integer
+          description: ID специализации
+        title:
+          type: string
+          description: Основной заголовок специализации
+          example: "SMM-специалист"
+        description:
+          type: string
+          description: Кто такой этот специалист и чем занимается
+          example: "SMM-специалист — это человек, который ведёт и продвигает бренд или личность в социальных сетях."
+        responsibilities:
+          type: array
+          description: Список основных обязанностей
+          items:
+            type: string
+
+    MaterialSummary:
+      type: object
+      required:
+        - id
+        - title
+        - type
+        - order_index
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор материала
+        title:
+          type: string
+          description: Название материала
+          example: "SMM-стратегия"
+        type:
+          $ref: '#/components/schemas/MaterialType'
+        order_index:
+          type: integer
+          description: Порядок отображения внутри специализации
+          example: 1
+
+
+    UserProgress:
+      type: object
+      required:
+        - completed
+      properties:
+        completed:
+          type: boolean
+          description: Статус завершения материала пользователем
+      
+    MaterialDetail:
+      allOf:
+        - $ref: '#/components/schemas/MaterialSummary'
+        - type: object
+          required:
+            - content
+            - user_progress
+          properties:
+            content:
+              type: string
+              description: Детальный учебный контент (текст, markdown или HTML)
+              example: "В этом уроке вы узнаете, как разработать SMM-стратегию..."
+            video_url:
+              type: string
+              nullable: true
+              description: Ссылка на видео-лекцию, если доступна
+              example: "https://videooo.com/100909"
+            resources:
+              type: array
+              description: Дополнительные материалы (презентации, ссылки)
+              items:
+                type: string
+              example:
+                - "https://example.com/checklist.pdf"
+                - "https://example.com/template.xlsx"
+            user_progress:
+              $ref: '#/components/schemas/UserProgress'
+
+    RateRequest:
+      type: object
+      required:
+        - rating
+      properties:
+        rating:
+          type: integer
+          enum: [1, 2, 3, 4, 5]
+          description: Значение оценки (1 - наихудшая, 5 - наилучшая)
+          example: 5
+
+    RateResponse:
+      type: object
+      required:
+        - material_id
+        - rating
+        - message
+      properties:
+        material_id:
+          type: integer
+          description: ID оценённого материала
+        rating:
+          type: integer
+          description: Сохранённая оценка
+        message:
+          type: string
+          description: Подтверждающее сообщение
+          example: "Оценка успешно сохранена"
+
+    CompleteRequest:
+      type: object
+      required:
+        - completed
+      properties:
+        completed:
+          type: boolean
+          example: true
+  
+    CompleteResponse:
+      type: object
+      required:
+        - material_id
+        - completed
+        - updated_at
+      properties:
+        material_id:
+          type: integer
+        completed:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+          description: Время последнего обновления статуса завершения
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          description: HTTP статус-код или код ошибки приложения
+          example: 500
+        message:
+          type: string
+          description: Понятное человеку сообщение об ошибке
+          example: "Внутренняя ошибка сервера"
+        details:
+          type: string
+          description: Дополнительные сведения об ошибке, если есть
+
+    MaterialType:
+      type: string
+      enum: [video, article, quiz]
+      description: Тип учебного материала

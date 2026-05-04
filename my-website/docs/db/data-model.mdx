@@ -1,0 +1,94 @@
+---
+title: Модели данных
+sidebar_position: 1
+description: Логическая и физическая модели базы данных платформы Карьерный навигатор
+---
+
+import Drawio from '@theme/Drawio';
+import logicalModel from '!!raw-loader!./logical-model.drawio';
+import physicalModel from '!!raw-loader!./physical-model.drawio';
+
+# Модели данных
+
+## Логическая модель
+
+Логическая модель описывает основные сущности системы и связи между ними, без привязки к конкретной СУБД.
+
+<Drawio content={logicalModel} />
+
+### Основные сущности
+
+| Сущность | Описание |
+|---|---|
+| Пользователь | Зарегистрированный участник платформы (user / expert / author) |
+| Специализация | Карьерное направление (SMM, аналитика, менеджмент и др.) |
+| Урок | Учебный материал внутри специализации |
+| Вопрос пользователя | Вопрос, заданный по теме урока |
+| Ответ на вопрос | Ответ эксперта на вопрос пользователя |
+| Список вакансий | Вакансии, размещённые работодателями |
+
+---
+
+## Физическая модель
+
+Физическая модель описывает конкретную реализацию структуры таблиц в PostgreSQL, включая типы данных, первичные и внешние ключи.
+
+<Drawio content={physicalModel} />
+
+### Таблицы и ключевые поля
+
+#### Пользователь (`users`)
+
+| Поле | Тип | Описание |
+|---|---|---|
+| id | BIGSERIAL PK | Уникальный идентификатор |
+| full_name | VARCHAR(255) NOT NULL | Полное имя |
+| email | VARCHAR(255) NOT NULL UNIQUE | Email |
+| login | VARCHAR(100) NOT NULL UNIQUE | Логин |
+| password_hash | TEXT NOT NULL | Хэш пароля |
+| role | user_role NOT NULL | Роль: user / expert / author |
+| created_at | TIMESTAMPTZ NOT NULL | Дата регистрации |
+
+#### Специализация (`specializations`)
+
+| Поле | Тип | Описание |
+|---|---|---|
+| id | BIGSERIAL PK | Уникальный идентификатор |
+| name | VARCHAR(150) NOT NULL UNIQUE | Название специализации |
+| description | TEXT | Описание |
+| icon_url | TEXT | Ссылка на иконку |
+
+#### Урок (`lessons`)
+
+| Поле | Тип | Описание |
+|---|---|---|
+| id | BIGSERIAL PK | Уникальный идентификатор |
+| specialization_id | BIGINT FK NOT NULL | Связь со специализацией |
+| name | VARCHAR(255) NOT NULL | Название урока |
+| sort_order | INT NOT NULL | Порядок отображения |
+
+#### Вопрос пользователя (`user_questions`)
+
+| Поле | Тип | Описание |
+|---|---|---|
+| id | BIGSERIAL PK | Уникальный идентификатор |
+| lesson_id | BIGINT FK NOT NULL | Связь с уроком |
+| user_id | BIGINT FK NOT NULL | Автор вопроса |
+| title | VARCHAR(255) NOT NULL | Заголовок вопроса |
+| content | TEXT NOT NULL | Текст вопроса |
+| status | question_status NOT NULL | Статус: open / answered |
+| created_at | TIMESTAMPTZ NOT NULL | Дата создания |
+
+#### Список вакансий (`job_listings`)
+
+| Поле | Тип | Описание |
+|---|---|---|
+| id | BIGSERIAL PK | Уникальный идентификатор |
+| employer_id | BIGINT FK NOT NULL | Работодатель |
+| specialization_id | BIGINT FK NOT NULL | Специализация |
+| title | VARCHAR(255) NOT NULL | Название вакансии |
+| description | TEXT NOT NULL | Описание |
+| salary_min / max | NUMERIC(12,2) | Диапазон зарплаты |
+| experience_level | experience_level NOT NULL | Уровень: junior / middle / senior |
+| is_active | BOOLEAN NOT NULL DEFAULT true | Активна ли вакансия |
+| deleted_at | TIMESTAMPTZ | Soft delete |
